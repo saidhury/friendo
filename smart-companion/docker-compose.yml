@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  smart-companion:
+    build: .
+    container_name: smart-companion
+    ports:
+      - "8000:8000"
+    environment:
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoxMjM0NTY=}
+      - DATABASE_URL=sqlite:///./data/smart_companion.db
+    volumes:
+      - smart-companion-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  smart-companion-data:
+    driver: local
