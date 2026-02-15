@@ -29,6 +29,7 @@ venv/
 ENV/
 env/
 .venv/
+myvenv/
 
 # IDE
 .idea/
@@ -71,3 +72,11 @@ htmlcov/
 
 # Docker
 .docker/
+# Backend static (built frontend)
+backend/static/
+
+# Data directory
+data/
+
+# PR description (use content for GitHub/GitLab PR, don't commit)
+PULL_REQUEST.md

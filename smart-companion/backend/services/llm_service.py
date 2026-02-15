@@ -1,9 +1,16 @@
 import json
 import re
-import httpx
+import asyncio
 from typing import List, Dict, Any, Optional
 from config import get_settings
 from services.pii_masking_service import get_pii_masking_service
+
+# Try to import google-genai SDK
+try:
+    from google import genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
 
 class LLMService:
     """Service for LLM-based task decomposition with privacy protection."""
@@ -131,8 +138,14 @@ No other text, just the JSON array."""
         
         steps = []
         
-        # Step 2: Try LLM if configured
-        if self.settings.LLM_API_URL and self.settings.LLM_API_KEY:
+        # Step 2: Try Gemini first, then OpenAI-compatible, then fallback
+        if self.settings.GEMINI_API_KEY:
+            try:
+                steps = await self._call_gemini(masked_goal)
+            except Exception as e:
+                print(f"Gemini call failed: {e}, trying fallback")
+                steps = []
+        elif self.settings.LLM_API_URL and self.settings.LLM_API_KEY:
             try:
                 steps = await self._call_llm(masked_goal)
             except Exception as e:
@@ -157,8 +170,45 @@ No other text, just the JSON array."""
             "complexity_score": complexity
         }
     
+    async def _call_gemini(self, goal: str) -> List[Dict[str, Any]]:
+        """Call Gemini API using the official SDK."""
+        if not GENAI_AVAILABLE:
+            print("google-genai SDK not installed, using fallback")
+            return []
+        
+        prompt = f"""{self.SYSTEM_PROMPT}
+
+Break down this goal: {goal}"""
+        
+        try:
+            # Create client with API key
+            client = genai.Client(api_key=self.settings.GEMINI_API_KEY)
+            
+            # Run sync call in executor to not block async loop
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                None,
+                lambda: client.models.generate_content(
+                    model=self.settings.GEMINI_MODEL,
+                    contents=prompt
+                )
+            )
+            
+            # Extract text from response
+            content = response.text
+            
+            # Parse JSON from response
+            json_match = re.search(r'\[.*\]', content, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group())
+            
+        except Exception as e:
+            print(f"Gemini SDK error: {e}")
+        
+        return []
+
     async def _call_llm(self, goal: str) -> List[Dict[str, Any]]:
-        """Call external LLM API with masked goal."""
+        """Call external OpenAI-compatible LLM API with masked goal."""
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
                 self.settings.LLM_API_URL,
