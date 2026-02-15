@@ -1,9 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function ProfileForm({ onSubmit, loading }) {
   const [name, setName] = useState('')
   const [fontPreference, setFontPreference] = useState('Lexend')
   const [highContrast, setHighContrast] = useState(false)
+  
+  // Apply preview styles when toggling preferences
+  useEffect(() => {
+    document.body.classList.toggle('high-contrast', highContrast)
+    return () => {
+      // Cleanup on unmount (in case user doesn't submit)
+      document.body.classList.remove('high-contrast')
+    }
+  }, [highContrast])
+  
+  useEffect(() => {
+    document.body.classList.toggle('font-opendyslexic', fontPreference === 'OpenDyslexic')
+    return () => {
+      document.body.classList.remove('font-opendyslexic')
+    }
+  }, [fontPreference])
   
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -18,12 +34,17 @@ function ProfileForm({ onSubmit, loading }) {
     })
   }
   
+  const toggleFont = () => {
+    setFontPreference(prev => prev === 'Lexend' ? 'OpenDyslexic' : 'Lexend')
+  }
+  
+  const toggleContrast = () => {
+    setHighContrast(prev => !prev)
+  }
+  
   return (
     <div className="card">
       <h2 className="card-header">Create Your Profile</h2>
-      <p className="micro-text" style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
-        Let's personalize your experience.
-      </p>
       
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -44,34 +65,32 @@ function ProfileForm({ onSubmit, loading }) {
         
         <div className="form-group">
           <label className="form-label">
-            Choose your preferred font
+            Choose your preferred settings
           </label>
           <div className="toggle-container">
             <span style={{ fontFamily: 'Lexend' }}>Lexend</span>
-            <div 
+            <button
+              type="button"
               className={`toggle-switch ${fontPreference === 'OpenDyslexic' ? 'active' : ''}`}
-              onClick={() => setFontPreference(
-                fontPreference === 'Lexend' ? 'OpenDyslexic' : 'Lexend'
-              )}
+              onClick={toggleFont}
+              aria-pressed={fontPreference === 'OpenDyslexic'}
+              aria-label="Toggle font between Lexend and OpenDyslexic"
             />
             <span style={{ fontFamily: 'OpenDyslexic' }}>OpenDyslexic</span>
           </div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-            OpenDyslexic is designed to help with dyslexia
-          </p>
         </div>
         
         <div className="form-group">
           <div className="toggle-container">
             <span>High Contrast Mode</span>
-            <div 
+            <button
+              type="button"
               className={`toggle-switch ${highContrast ? 'active' : ''}`}
-              onClick={() => setHighContrast(!highContrast)}
+              onClick={toggleContrast}
+              aria-pressed={highContrast}
+              aria-label="Toggle high contrast mode"
             />
           </div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-            Black background with bright text
-          </p>
         </div>
         
         <button 

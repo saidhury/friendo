@@ -21,21 +21,41 @@ export default defineConfig(({ mode }) => {
       terserOptions: {
         compress: {
           drop_console: !isDev,
-          drop_debugger: !isDev
+          drop_debugger: !isDev,
+          pure_funcs: isDev ? [] : ['console.log', 'console.info', 'console.debug'],
+          passes: 2
+        },
+        mangle: {
+          safari10: true
+        },
+        format: {
+          comments: false
         }
       },
       rollupOptions: {
         output: {
           manualChunks: {
             vendor: ['react', 'react-dom']
-          }
+          },
+          compact: true
+        },
+        treeshake: {
+          moduleSideEffects: false,
+          propertyReadSideEffects: false
         }
       },
-      sourcemap: isDev,
-      chunkSizeWarningLimit: 500
+      sourcemap: false,
+      chunkSizeWarningLimit: 500,
+      cssCodeSplit: true,
+      reportCompressedSize: false,
+      target: 'es2020'
     },
     preview: {
       port: 4173
+    },
+    esbuild: {
+      legalComments: 'none',
+      treeShaking: true
     }
   }
 })

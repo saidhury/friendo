@@ -280,6 +280,14 @@ p {
   border-radius: 16px;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.toggle-switch:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
 .toggle-switch.active {
