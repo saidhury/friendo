@@ -1,5 +1,9 @@
 import os
 from functools import lru_cache
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 class Settings:
     """Application settings loaded from environment variables."""
@@ -17,6 +21,10 @@ class Settings:
     # LLM Configuration (using local mock by default for privacy)
     LLM_API_URL: str = os.getenv("LLM_API_URL", "")
     LLM_API_KEY: str = os.getenv("LLM_API_KEY", "")
+    
+    # Gemini API Configuration (preferred LLM)
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
     
     # Application
     APP_NAME: str = "Smart Companion"
