@@ -38,10 +38,6 @@ export default defineConfig(({ mode }) => {
             vendor: ['react', 'react-dom']
           },
           compact: true
-        },
-        treeshake: {
-          moduleSideEffects: false,
-          propertyReadSideEffects: false
         }
       },
       sourcemap: false,
