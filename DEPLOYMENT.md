@@ -79,7 +79,9 @@ CORS_ORIGINS=*
 
 ## Docker Deployment (Recommended)
 
-### Quick Start (One Command Setup)
+### Quick Start
+
+**Step 1: Run the setup script**
 
 ```bash
 # Windows PowerShell
@@ -89,51 +91,179 @@ CORS_ORIGINS=*
 chmod +x setup.sh && ./setup.sh
 ```
 
-The setup script will:
-- Create `.env` from template
-- Auto-generate the encryption key
-- Display next steps
+This will:
+- Create `.env` from the template
+- Auto-generate the `ENCRYPTION_KEY`
 
-Then add your `GEMINI_API_KEY` to `.env` and run:
+**Step 2: Add your Gemini API Key**
+
+Open the `.env` file and add your API key:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+> 💡 Get your free API key from [Google AI Studio](https://aistudio.google.com/)
+
+**Step 3: Build and run**
 
 ```bash
 docker compose up --build
 ```
 
-The application will be available at `http://localhost:8000`
+The app will be available at **http://localhost:8000**
 
-### Docker Commands Reference
+---
 
-```bash
-# Build and start
-docker compose up --build
+### Passing API Keys to Docker
 
-# Run in background
-docker compose up -d --build
+There are multiple ways to provide API keys to the Docker container:
 
-# View logs
-docker compose logs -f
+#### Option 1: Using .env file (Recommended for local dev)
 
-# Stop
-docker compose down
+Create a `.env` file with your keys:
 
-# Rebuild after changes
-docker compose up --build --force-recreate
+```env
+ENCRYPTION_KEY=your-fernet-key
+GEMINI_API_KEY=your-gemini-api-key
 ```
 
-### Building the Image Separately
+Then run:
 
 ```bash
-# Build the optimized image (181MB, Alpine-based)
+docker compose up --build
+```
+
+The `docker-compose.yml` automatically loads from `.env`.
+
+#### Option 2: Environment variables on command line
+
+```bash
+# Single command with inline env vars
+docker run -d \
+  --name friendo \
+  -p 8000:8000 \
+  -e GEMINI_API_KEY="your-api-key-here" \
+  -e ENCRYPTION_KEY="your-fernet-key" \
+  -v friendo_data:/app/data \
+  friendo:latest
+```
+
+#### Option 3: Using --env-file flag
+
+```bash
+# Build the image first
 docker build -t friendo .
 
-# Run standalone
+# Run with env file
 docker run -d \
   --name friendo \
   -p 8000:8000 \
   --env-file .env \
   -v friendo_data:/app/data \
-  friendo
+  friendo:latest
+```
+
+#### Option 4: Docker Compose with explicit environment
+
+You can also override values in `docker-compose.yml`:
+
+```yaml
+services:
+  friendo:
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}  # From shell env
+      - ENCRYPTION_KEY=hardcoded-key-here  # Or hardcode
+```
+
+Then export and run:
+
+```bash
+export GEMINI_API_KEY="your-key"
+docker compose up --build
+```
+
+---
+
+### Docker Commands Reference
+
+```bash
+# Build and start (foreground)
+docker compose up --build
+
+# Build and start (background/detached)
+docker compose up -d --build
+
+# View live logs
+docker compose logs -f
+
+# View logs for specific service
+docker compose logs -f friendo
+
+# Stop containers
+docker compose down
+
+# Stop and remove volumes (resets database)
+docker compose down -v
+
+# Rebuild after code changes
+docker compose up --build --force-recreate
+
+# Check container status
+docker compose ps
+```
+
+---
+
+### Building the Image Separately
+
+```bash
+# Build the optimized production image (~180MB, Alpine-based)
+docker build -t friendo:latest .
+
+# Tag for a registry
+docker tag friendo:latest your-registry.com/friendo:latest
+
+# Push to registry
+docker push your-registry.com/friendo:latest
+```
+
+---
+
+### Production Docker Compose
+
+For production, create a `docker-compose.prod.yml`:
+
+```yaml
+services:
+  friendo:
+    image: friendo:latest
+    container_name: friendo
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - DATABASE_URL=sqlite:///./data/friendo.db
+    volumes:
+      - friendo-data:/app/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  friendo-data:
+```
+
+Run with:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ---
