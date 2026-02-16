@@ -369,16 +369,18 @@ Consider if the task involves:
 Respond with ONLY a JSON object in this exact format:
 {
   "needs_image": true or false,
-  "image_prompt": "A friendly message asking for a photo (only if needs_image is true)",
+  "image_prompt": "A SHORT, friendly question (max 10 words) asking for a photo. No emojis. Example: 'Can I see your desk?' or 'Show me what needs cleaning?'",
   "image_type": "brief description of what kind of image would help (only if needs_image is true)"
 }
 
+Keep image_prompt VERY short - it should be a simple question, not an explanation.
+
 Examples:
-- "Clean my room" -> needs_image: true, asking for photo of the room
+- "Clean my room" -> needs_image: true, image_prompt: "Can I see your room?"
 - "Write an email" -> needs_image: false
-- "Organize my desk" -> needs_image: true, asking for photo of desk
+- "Organize my desk" -> needs_image: true, image_prompt: "Show me your desk?"
 - "Study for exam" -> needs_image: false
-- "Fix the broken shelf" -> needs_image: true, asking for photo of the shelf
+- "Fix the broken shelf" -> needs_image: true, image_prompt: "Can I see the shelf?"
 
 No other text, just the JSON object."""
 
@@ -445,32 +447,33 @@ User's task: {goal}"""
         goal_lower = goal.lower()
         
         # Keywords that suggest visual context would help
+        # Short, simple prompts - no emojis, max 10 words
         visual_keywords = {
-            'clean': ('photo of the space you want to clean', 'photo of space'),
-            'tidy': ('photo of what needs tidying', 'photo of area'),
-            'organize': ('photo of what you want to organize', 'photo of items'),
-            'room': ('photo of your room', 'photo of room'),
-            'desk': ('photo of your desk', 'photo of desk'),
-            'closet': ('photo of your closet', 'photo of closet'),
-            'garage': ('photo of your garage', 'photo of garage'),
-            'fix': ('photo of what needs fixing', 'photo of item'),
-            'repair': ('photo of what needs repair', 'photo of item'),
-            'broken': ('photo of what\'s broken', 'photo of item'),
-            'decorate': ('photo of the space', 'photo of space'),
-            'rearrange': ('photo of current arrangement', 'photo of space'),
-            'sort': ('photo of what needs sorting', 'photo of items'),
-            'pack': ('photo of what you\'re packing', 'photo of items'),
-            'kitchen': ('photo of your kitchen', 'photo of kitchen'),
-            'bathroom': ('photo of your bathroom', 'photo of bathroom'),
-            'garden': ('photo of your garden', 'photo of garden'),
-            'yard': ('photo of your yard', 'photo of yard'),
+            'clean': ('Can I see the space?', 'photo of space'),
+            'tidy': ('Show me what needs tidying?', 'photo of area'),
+            'organize': ('Can I see what to organize?', 'photo of items'),
+            'room': ('Can I see your room?', 'photo of room'),
+            'desk': ('Show me your desk?', 'photo of desk'),
+            'closet': ('Can I see your closet?', 'photo of closet'),
+            'garage': ('Show me your garage?', 'photo of garage'),
+            'fix': ('Can I see what needs fixing?', 'photo of item'),
+            'repair': ('Show me what needs repair?', 'photo of item'),
+            'broken': ('Can I see what\'s broken?', 'photo of item'),
+            'decorate': ('Can I see the space?', 'photo of space'),
+            'rearrange': ('Show me the current setup?', 'photo of space'),
+            'sort': ('Can I see what needs sorting?', 'photo of items'),
+            'pack': ('Show me what you\'re packing?', 'photo of items'),
+            'kitchen': ('Can I see your kitchen?', 'photo of kitchen'),
+            'bathroom': ('Show me your bathroom?', 'photo of bathroom'),
+            'garden': ('Can I see your garden?', 'photo of garden'),
+            'yard': ('Show me your yard?', 'photo of yard'),
         }
         
-        for keyword, (prompt_suffix, image_type) in visual_keywords.items():
+        for keyword, (prompt_text, image_type) in visual_keywords.items():
             if keyword in goal_lower:
                 return {
                     "needs_image": True,
-                    "image_prompt": f"Would you like to share a {prompt_suffix}? This helps me give you more specific steps! 📸",
+                    "image_prompt": prompt_text,
                     "image_type": image_type
                 }
         

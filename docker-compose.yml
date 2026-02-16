@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   smart-companion:
     build:
@@ -8,15 +6,12 @@ services:
     container_name: smart-companion
     ports:
       - "${PORT:-8000}:8000"
+    env_file:
+      - .env
     environment:
       - ENVIRONMENT=production
       - DEBUG=false
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - DATABASE_URL=sqlite:///./data/smart_companion.db
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
-      - CORS_ORIGINS=${CORS_ORIGINS:-*}
-      - WORKERS=${WORKERS:-2}
     volumes:
       - smart-companion-data:/app/data
     restart: unless-stopped
@@ -25,12 +20,12 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 10s
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "5m"
+        max-file: "2"
 
 volumes:
   smart-companion-data:

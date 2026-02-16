@@ -347,18 +347,15 @@ p {
 .micro-step-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 350px; /* Fixed minimum height to prevent layout shifts */
 }
 
 .micro-step-container {
   text-align: center;
   padding: var(--spacing-lg) var(--spacing-md);
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  min-height: 200px; /* Consistent content area */
+  gap: var(--spacing-sm);
 }
 
 .step-number {
@@ -372,19 +369,19 @@ p {
   border-radius: var(--radius-full);
   font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: var(--spacing-sm);
 }
 
 .step-action {
   font-size: 1.5rem;
   font-weight: 500;
-  line-height: 1.5;
-  margin-bottom: var(--spacing-md);
+  line-height: 1.4;
   color: var(--text-primary);
-  min-height: 60px; /* Prevent jumping with varying text lengths */
+  min-height: 4.2em; /* Space for ~3 lines at 1.4 line-height */
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  padding: 0 var(--spacing-sm);
 }
 
 .step-time {
@@ -396,7 +393,6 @@ p {
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
   color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
 }
 
 .step-progress {
@@ -409,9 +405,6 @@ p {
 .complete-button-container {
   padding: var(--spacing-md);
   background-color: var(--bg-primary);
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
 }
 
 /* ============================================

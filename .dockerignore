@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+
+# Dependencies (rebuilt in container)
+node_modules
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+env
+
+# Build artifacts
+frontend/dist
+*.egg-info
+.eggs
+build
+dist
+
+# IDE & Editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Logs & temp files
+*.log
+api-logs.txt
+*.tmp
+*.temp
+
+# Environment files (use docker-compose env)
+.env
+.env.local
+.env.*.local
+
+# Documentation (not needed in container)
+*.md
+!README.md
+docs/
+
+# Testing
+.coverage
+htmlcov
+.pytest_cache
+.tox
+tests/
+
+# Development files
+*.test.js
+*.spec.js
+api_logger.py
+vite-api-logger.js
+
+# Smart-companion subfolder (duplicate)
+smart-companion/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,67 +1,79 @@
 # ============================================
-# Smart Companion - Multi-stage Dockerfile
+# Smart Companion - Optimized Multi-stage Dockerfile
 # Neuro-Inclusive Energy-Adaptive Micro-Wins System
 # ============================================
 
-# Stage 1: Build React Frontend
+# Stage 1: Build React Frontend with tree-shaking
 FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Copy package files
+# Copy package files first (better layer caching)
 COPY frontend/package.json frontend/package-lock.json* ./
 
-# Install dependencies
-RUN npm ci --only=production=false
+# Install ALL dependencies (dev deps needed for build)
+RUN npm ci && npm cache clean --force
 
 # Copy source files
 COPY frontend/ ./
 
-# Build the frontend for production
+# Build with production optimizations
 ENV NODE_ENV=production
 RUN npm run build
 
 # ============================================
-# Stage 2: Python Backend with Frontend Static Files
+# Stage 2: Python dependencies builder
 # ============================================
-FROM python:3.11-slim AS production
+FROM python:3.11-alpine AS python-builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apk add --no-cache gcc musl-dev libffi-dev
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy and install Python dependencies
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt gunicorn && \
+    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find /opt/venv -type f -name "*.pyc" -delete && \
+    find /opt/venv -type f -name "*.pyo" -delete
+
+# ============================================
+# Stage 3: Minimal production image
+# ============================================
+FROM python:3.11-alpine AS production
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production \
-    PORT=8000
+    PORT=8000 \
+    PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+# Install only runtime dependencies (curl for healthcheck)
+RUN apk add --no-cache curl libffi && \
+    addgroup -S appuser && adduser -S appuser -G appuser
 
-# Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Copy virtual environment from builder
+COPY --from=python-builder /opt/venv /opt/venv
 
-# Copy and install Python dependencies
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir gunicorn
+# Copy backend code (excluding dev files)
+COPY backend/*.py backend/routers backend/services ./
+COPY backend/routers/ ./routers/
+COPY backend/services/ ./services/
 
-# Copy backend code
-COPY backend/ .
-
-# Remove development-only files
-RUN rm -f api_logger.py api-logs.txt 2>/dev/null || true
-
-# Create static directory and copy frontend build
-RUN mkdir -p /app/static
+# Copy frontend build
 COPY --from=frontend-builder /app/frontend/dist/ /app/static/
 
-# Create data directory for SQLite and set permissions
-RUN mkdir -p /app/data \
-    && chown -R appuser:appuser /app
+# Create data directory and set permissions
+RUN mkdir -p /app/data && chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
@@ -70,15 +82,13 @@ USER appuser
 EXPOSE 8000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/api/health || exit 1
 
-# Run with gunicorn for production (better worker management)
+# Run with gunicorn
 CMD ["gunicorn", "main:app", \
      "--bind", "0.0.0.0:8000", \
      "--workers", "2", \
      "--worker-class", "uvicorn.workers.UvicornWorker", \
      "--access-logfile", "-", \
-     "--error-logfile", "-", \
-     "--capture-output", \
-     "--enable-stdio-inheritance"]
+     "--error-logfile", "-"]

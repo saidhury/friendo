@@ -1,11 +1,20 @@
 import os
 import secrets
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 from dotenv import load_dotenv
 
-# Load .env file
-load_dotenv()
+# Load .env from project root (one level up from backend/)
+# This ensures both backend and frontend use the same .env file
+PROJECT_ROOT = Path(__file__).parent.parent
+ENV_FILE = PROJECT_ROOT / ".env"
+
+if ENV_FILE.exists():
+    load_dotenv(ENV_FILE)
+else:
+    # Fallback to default load_dotenv behavior
+    load_dotenv()
 
 
 class Settings:

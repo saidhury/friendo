@@ -27,11 +27,6 @@ function MicroStepView({ step, stepIndex, totalSteps, onComplete, loading }) {
         <div className="step-time">
           ⏱️ About {step.estimated_minutes || 3} min
         </div>
-        
-        {/* Progress indicator */}
-        <p className="step-progress">
-          Step {stepIndex + 1} of {totalSteps}
-        </p>
       </div>
       
       {/* Fixed Complete button - always in same position */}

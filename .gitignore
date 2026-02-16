@@ -94,7 +94,6 @@ backend/api-logs.txt
 .env.local
 .env.*.local
 !.env.example
-!.env.production
 
 # PR description (use content for GitHub/GitLab PR, don't commit)
 PULL_REQUEST.md

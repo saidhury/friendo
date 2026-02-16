@@ -162,50 +162,52 @@ Before any text is sent to an external LLM (if configured), PII is automatically
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Python 3.11+
-- Node.js 20+
-- npm or yarn
+### Docker (Recommended - One Command)
+
+```bash
+# Windows PowerShell
+.\setup.ps1
+
+# Linux/Mac
+chmod +x setup.sh && ./setup.sh
+```
+
+Then add your `GEMINI_API_KEY` to `.env` and run:
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:8000
 
 ### Local Development
 
-1. **Clone and setup backend:**
+**Prerequisites:** Python 3.11+, Node.js 20+
+
+1. **Setup environment:**
 ```bash
-cd smart-companion/backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Windows
+.\setup.ps1
+
+# Linux/Mac
+./setup.sh
+```
+
+2. **Run backend:**
+```bash
+cd backend
 pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-2. **Set environment variables:**
+3. **Run frontend (new terminal):**
 ```bash
-# Generate encryption key
-python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-
-# Set it (Linux/Mac)
-export ENCRYPTION_KEY="your-generated-key"
-
-# Or Windows PowerShell
-$env:ENCRYPTION_KEY="your-generated-key"
-```
-
-3. **Run backend:**
-```bash
-python main.py
-# Or: uvicorn main:app --reload --port 8000
-```
-
-4. **Setup and run frontend (new terminal):**
-```bash
-cd smart-companion/frontend
+cd frontend
 npm install
 npm run dev
 ```
 
-5. **Open in browser:**
-```
-http://localhost:5173
-```
+4. **Open:** http://localhost:5173
 
 ---
 
@@ -214,35 +216,38 @@ http://localhost:5173
 ### Quick Start
 
 ```bash
-# Navigate to project root
-cd smart-companion
+# 1. Setup (auto-generates encryption key)
+.\setup.ps1          # Windows
+./setup.sh           # Linux/Mac
 
-# Generate an encryption key
-python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# 2. Add your Gemini API key to .env
 
-# Copy and configure environment
-cp .env.production .env
-# Edit .env with your ENCRYPTION_KEY and optional GEMINI_API_KEY
-
-# Build and run with Docker Compose
-docker-compose up -d --build
-
-# Check status
-docker-compose ps
-docker-compose logs -f
+# 3. Build and run
+docker compose up --build
 ```
+
+### Docker Commands
+
+```bash
+docker compose up --build              # Build & start
+docker compose up -d                   # Run in background
+docker compose logs -f                 # View logs
+docker compose down                    # Stop
+docker compose up --build --force-recreate  # Full rebuild
+```
+
+### Image Details
+
+- **Image name:** `friendo`
+- **Size:** ~181MB (Alpine-based, multi-stage build)
+- **Health check:** Built-in at `/api/health`
 
 ### Production Deployment
 
-For detailed production deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** which covers:
-
-- Environment configuration
-- Docker Compose deployment
-- Manual deployment (systemd)
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for:
 - Cloud platforms (Azure, AWS, GCP)
 - Nginx reverse proxy with SSL
-- Monitoring and maintenance
-- Troubleshooting guide
+- Monitoring and troubleshooting
 
 ### Access
 ```

@@ -422,7 +422,7 @@ function App() {
   if (!user) {
     return (
       <div className="app-container">
-        <h1>🧠 Smart Companion</h1>
+        <h1>Friendo</h1>
         <p style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--text-secondary)' }}>
           Your neuro-inclusive productivity partner
         </p>
@@ -440,7 +440,7 @@ function App() {
       
       {/* Header with Hamburger Menu */}
       <header className="app-header">
-        <h1>🧠 Smart Companion</h1>
+        <h1>Friendo</h1>
         
         {/* Hamburger Menu Button */}
         <button 
@@ -514,7 +514,7 @@ function App() {
       {/* Image Upload Modal */}
       {showImageUpload && (
         <ImageUpload
-          prompt={imagePrompt}
+          imagePrompt={imagePrompt}
           onSubmit={handleImageDecision}
           onSkip={() => handleImageDecision(null)}
         />
